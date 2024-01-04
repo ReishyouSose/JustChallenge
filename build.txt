@@ -1,0 +1,4 @@
+displayName = 就要做挑战
+author = Reits
+version = 0.1
+dllReferences = NetSimplified

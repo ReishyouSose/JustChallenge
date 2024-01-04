@@ -1,0 +1,9 @@
+# This file will automatically update with entries for new content after a build and reload
+
+Challenges: {
+	淹死: 被水淹死
+	死于岩浆: 死于岩浆
+	穿金胸甲: 装备金(铂金)胸甲
+}
+
+Keybinds.L.DisplayName: L
