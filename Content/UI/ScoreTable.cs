@@ -6,6 +6,7 @@ namespace JustChallenge.Content.UI
     {
         internal static string Namekey = "JustChallenge.Content.UI.ScoreTable";
         internal static ScoreTable SUI => UIS?[Namekey] as ScoreTable;
+        private UIPanel bg;
         private UIBottom panel;
         private UIText reset;
         public bool Wating { get; private set; }
@@ -14,9 +15,11 @@ namespace JustChallenge.Content.UI
         {
             base.OnInitialization();
 
-            UIPanel bg = new(100, 100, color: Color.White * 0.5f);
-            bg.SetSize(0, 0, 0.35f, 0.5f);
-            bg.SetCenter(-bg.Width / 2, -bg.Height / 2, 0.5f, 0.5f);
+            bg = new(400, 50 + 28 * 3, color: Color.White)
+            {
+                CanDrag = true
+            };
+            bg.SetPos(-bg.Width / 2, -bg.Height / 2, 0.5f, 0.4f);
             Register(bg);
 
             UIText name = new("玩家", drawStyle: 0);
@@ -53,10 +56,9 @@ namespace JustChallenge.Content.UI
         {
             Info.IsVisible = !Info.IsVisible;
         }
-        public static void Refresh()
+        public void RefreshScore()
         {
-            ScoreTable SUI = UIS?[Namekey] as ScoreTable;
-            SUI.panel.RemoveAll();
+            panel.RemoveAll();
             int y = 10;
             foreach ((byte whoAmI, int point) in ScoreSystem.tempScore)
             {
@@ -64,16 +66,20 @@ namespace JustChallenge.Content.UI
                 if (player.active)
                 {
                     UIText name = new(player.name, drawStyle: 0);
-                    name.SetPos(10, y);
-                    SUI.panel.Register(name);
+                    name.SetPos(13, y);
+                    panel.Register(name);
 
                     UIText score = new(point.ToString(), drawStyle: 0);
                     score.SetPos(-scoreOffset, y, 1);
-                    SUI.panel.Register(score);
+                    panel.Register(score);
 
                     y += 28;
                 }
             }
+            panel.Info.Height.Pixel = y + 20;
+            bg.Info.Height.Pixel = 20 + panel.Info.Height.Pixel;
+            bg.SetPos(-bg.Width / 2, -bg.Height / 2, 0.5f, 0.4f);
+            bg.Calculation();
         }
         public void RefreshWaiter(bool success)
         {

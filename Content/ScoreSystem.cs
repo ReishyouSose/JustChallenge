@@ -36,7 +36,7 @@ namespace JustChallenge.Content
             }
             else
             {
-                challenges = new int[3];
+                challenges = new int[3] { -1, -1, -1 };
                 complete = new bool[3];
                 completed = new();
             }

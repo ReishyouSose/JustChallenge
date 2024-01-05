@@ -184,5 +184,15 @@ namespace JustChallenge
         public static string GTV(string key) => Language.GetTextValue(LocalKey + key);
         public static Dictionary<string, ContainerElement> UIS => ScoreSystem.uis.Elements;
         public static uint UserID => SteamUser.GetSteamID().GetAccountID().m_AccountID;
+        public static void Shuffle<T>(this IList<T> list, int? stop = null)
+        {
+            int n = list.Count;
+            int i = -1;
+            while (++i < (stop ?? n))
+            {
+                int r = Main.rand.Next(n);
+                (list[i], list[r]) = (list[r], list[i]);
+            }
+        }
     }
 }

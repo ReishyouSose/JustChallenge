@@ -1,4 +1,5 @@
-﻿using Terraria.Localization;
+﻿using Terraria.GameContent.UI.States;
+using Terraria.Localization;
 
 namespace JustChallenge.Content.Challenges
 {
@@ -38,7 +39,7 @@ namespace JustChallenge.Content.Challenges
         public virtual void Draw(SpriteBatch spb, float x, float y)
         {
             ChatManager.DrawColorCodedStringWithShadow(spb, FontAssets.MouseText.Value, Description.Value,
-                new Vector2(x, y), color, 0, Vector2.Zero, Vector2.One, spread: 1);
+                new Vector2(x, y), color.SetAlpha(200), 0, Vector2.Zero, Vector2.One, spread: 1);
         }
         public virtual void ExtraCondition() { }
         protected override void Register() { }
@@ -61,16 +62,25 @@ namespace JustChallenge.Content.Challenges
         }
         public static int[] RollChallenge()
         {
-            List<int> rng = new();
-            while (rng.Count < 3)
+            List<int> canRoll = new();
+            for (int i = 0; i < ChallengeID.challenges.Count; i++)
             {
-                int r = Main.rand.Next(ChallengeID.challenges.Count);
-                if (!rng.Contains(r) && !ScoreSystem.completed.Contains(r) && !ignore.Contains(r))
+                if (ignore.Contains(i) || ScoreSystem.completed.Contains(i)) continue;
+                canRoll.Add(i);
+            }
+            canRoll.Shuffle();
+            return canRoll.GetRange(0, 3).ToArray();
+        }
+        public static void CheckFirst()
+        {
+            foreach (int id in ScoreSystem.challenges)
+            {
+                if (id > -1)
                 {
-                    rng.Add(r);
+                    return;
                 }
             }
-            return rng.ToArray();
+            ScoreSystem.challenges = RollChallenge();
         }
     }
     public class 淹死 : Challenge

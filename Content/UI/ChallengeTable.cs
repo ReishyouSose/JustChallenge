@@ -16,7 +16,7 @@ namespace JustChallenge.Content.UI
         {
             base.OnInitialization();
 
-            bg = new(100, 50 + 28 * 3, color: Color.White * 0.5f);
+            bg = new(100, 50 + 28 * 3, color: Color.White);
             bg.SetPos(20, -bg.Height / 2f, 0, 0.5f);
             Register(bg);
 
@@ -39,7 +39,7 @@ namespace JustChallenge.Content.UI
             if (needReCal)
             {
                 bg.Info.Width.Pixel = 20 + Math.Max(refresh.TextSize.X,
-                    challenges.Select(x => FontAssets.MouseText.Value.MeasureString(x.Description.Value).X).Max());
+                    challenges.Select(x => x == null ? 0 : FontAssets.MouseText.Value.MeasureString(x.Description.Value).X).Max());
                 bg.Calculation();
                 needReCal = false;
             }
@@ -51,11 +51,11 @@ namespace JustChallenge.Content.UI
             {
                 Vector2 pos = bg.HitBox(false).TopLeft() + new Vector2(10, 10);
                 int x = bg.Width - 20;
-                for (int i = 0; i < challenges.Length; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     Challenge challenge = challenges[i];
                     if (challenge == null) return;
-                    challenge.Draw(sb, pos.X, pos.Y + 3 + 28 * (i + 1));
+                    challenge.Draw(sb, pos.X, pos.Y + 8 + 28 * (i + 1));
                     if (challenge.IsComplete)
                     {
                         sb.Draw(TextureAssets.MagicPixel.Value, new Vector2(pos.X, pos.Y + 12 + 28 * (i + 1)),
@@ -68,7 +68,7 @@ namespace JustChallenge.Content.UI
         {
             for (int i = 0; i < 3; i++)
             {
-                challenges[i] = Challenge.NewChallenge(ids[i], false);
+                challenges[i] = ids[i] == -1 ? null : Challenge.NewChallenge(ids[i], false);
             }
             Wating = false;
             RefreshWaiter(false);
@@ -78,7 +78,7 @@ namespace JustChallenge.Content.UI
             CUI.challenges = new Challenge[3];
             for (int i = 0; i < 3; i++)
             {
-                CUI.challenges[i] = Challenge.NewChallenge(ids[i], complete[i]);
+                CUI.challenges[i] = ids[i] == -1 ? null : Challenge.NewChallenge(ids[i], complete[i]);
             }
             CUI.needReCal = true;
         }
@@ -100,8 +100,7 @@ namespace JustChallenge.Content.UI
             for (int i = 0; i < 3; i++)
             {
                 Challenge c = CUI.challenges[i];
-                if (c == null) return;
-                if (c.type == id && !c.IsComplete)
+                if (c != null && c.type == id && !c.IsComplete)
                 {
                     //c.IsComplete = true;
                     CompleteChallenge.Send((byte)i, (byte)Main.LocalPlayer.whoAmI, UserID);
