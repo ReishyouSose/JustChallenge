@@ -1,5 +1,6 @@
 ﻿using JustChallenge.Content.Challenges;
 using JustChallenge.Content.Packages;
+using JustChallenge.Content.UI;
 using JustChallenge.UISupport;
 using Microsoft.Xna.Framework.Input;
 using Terraria.ModLoader.IO;
@@ -15,10 +16,12 @@ namespace JustChallenge.Content
         internal static Dictionary<uint, Dictionary<string, int>> scoresData = new();
         internal static Dictionary<byte, int> tempScore;
         internal static int activcPlayer;
-        internal static int waitPlayer;
+        internal static int waitRefreshPlayer;
+        internal static int waitResetPlayer;
         internal static int NeedPlayer => activcPlayer > 1 ? Math.Max(2, (int)Math.Round(activcPlayer / 2f)) : 1;
         internal static int[] challenges;
         internal static bool[] complete;
+        internal static HashSet<int> completed;
         public override void Load()
         {
             if (!Main.dedServ)
@@ -35,6 +38,7 @@ namespace JustChallenge.Content
             {
                 challenges = new int[3];
                 complete = new bool[3];
+                completed = new();
             }
             tempScore = new();
             CheckScore = KeybindLoader.RegisterKeybind(Mod, "L", Keys.L);
@@ -49,7 +53,7 @@ namespace JustChallenge.Content
         }
         public override void PreSaveAndQuit()
         {
-            SyncQuit.Send((byte)Main.LocalPlayer.whoAmI);
+            SyncQuit.Send((byte)Main.myPlayer, ChallengeTable.CUI.Wating, ScoreTable.SUI.Wating);
         }
         public override void SaveWorldData(TagCompound tag)
         {
@@ -74,6 +78,7 @@ namespace JustChallenge.Content
                 c[i.ToString()] = complete[i];
             }
             tag["complete"] = c;
+            tag["completed"] = completed.ToArray();
         }
         public override void LoadWorldData(TagCompound tag)
         {
@@ -94,7 +99,7 @@ namespace JustChallenge.Content
                 }
             }
             challenges = tag.GetIntArray(nameof(challenges));
-
+            completed = tag.GetIntArray(nameof(completed)).ToHashSet();
             if (!challenges.Any())
             {
                 challenges = Challenge.RollChallenge();

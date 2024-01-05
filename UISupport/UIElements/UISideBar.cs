@@ -13,7 +13,7 @@ public class UISideBar : UIPanel
     public UIImage button;
     public string hoverText;
     /// <param name="dir">0123顺转四向</param>
-    public UISideBar(string texKey, float x, float y, int dir = 0) : base(texKey, x, y)
+    public UISideBar(string texKey, float x, float y, int dir = 0) : base(x, y, texKey)
     {
         CanDrag = false;
         baseX ??= x;

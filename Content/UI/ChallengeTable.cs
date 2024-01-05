@@ -8,17 +8,16 @@ namespace JustChallenge.Content.UI
         internal static ChallengeTable CUI => UIS?[Namekey] as ChallengeTable;
         internal static string Namekey = "JustChallenge.Content.UI.ChallengeTable";
         public Challenge[] challenges;
-        public UIImage bg;
+        public UIPanel bg;
         private bool needReCal;
-        private bool wait;
+        public bool Wating { get; private set; }
         public UIText refresh;
         public override void OnInitialization()
         {
             base.OnInitialization();
 
-            bg = new(T2D("JustChallenge/UISupport/Asset/ClothesStyleBack"));
+            bg = new(100, 50 + 28 * 3, color: Color.White * 0.5f);
             bg.SetPos(20, -bg.Height / 2f, 0, 0.5f);
-            bg.color = Color.White * 0.5f;
             Register(bg);
 
             challenges = new Challenge[3];
@@ -28,10 +27,8 @@ namespace JustChallenge.Content.UI
             refresh.SetSize(refresh.TextSize);
             refresh.Events.OnLeftDown += evt =>
             {
-                Wait.Send((byte)Main.LocalPlayer.whoAmI, wait);
-                wait = !wait;
-                ScoreSystem.waitPlayer += wait ? 1 : -1;
-                RefreshWaiter();
+                Wait.Send((byte)Main.LocalPlayer.whoAmI, Wating, false);
+                Wating = !Wating;
             };
             bg.Register(refresh);
         }
@@ -57,6 +54,7 @@ namespace JustChallenge.Content.UI
                 for (int i = 0; i < challenges.Length; i++)
                 {
                     Challenge challenge = challenges[i];
+                    if (challenge == null) return;
                     challenge.Draw(sb, pos.X, pos.Y + 3 + 28 * (i + 1));
                     if (challenge.IsComplete)
                     {
@@ -72,8 +70,8 @@ namespace JustChallenge.Content.UI
             {
                 challenges[i] = Challenge.NewChallenge(ids[i], false);
             }
-            wait = false;
-            RefreshWaiter();
+            Wating = false;
+            RefreshWaiter(false);
         }
         public static void SyncChallenges(int[] ids, bool[] complete)
         {
@@ -88,22 +86,24 @@ namespace JustChallenge.Content.UI
         {
             CUI.challenges[index].IsComplete = true;
         }
-        public void RefreshWaiter()
+        public void RefreshWaiter(bool success)
         {
-            refresh.ChangeText((wait ? "撤销刷新请求" : "发起刷新请求")
-                + $" ({ScoreSystem.waitPlayer}/{ScoreSystem.NeedPlayer})");
+            if (success) Wating = false;
+            refresh.ChangeText((Wating ? "撤销刷新请求" : "发起刷新请求")
+                + $" ({ScoreSystem.waitRefreshPlayer}/{ScoreSystem.NeedPlayer})");
             needReCal = true;
         }
         public static void TryComplete(int id)
         {
+            //Main.NewText("try" + ChallengeID.challenges[id].Description.Value);
             if (CUI.challenges == null) return;
             for (int i = 0; i < 3; i++)
             {
                 Challenge c = CUI.challenges[i];
                 if (c == null) return;
-                if (c.ID == id && !c.IsComplete)
+                if (c.type == id && !c.IsComplete)
                 {
-                    c.IsComplete = true;
+                    //c.IsComplete = true;
                     CompleteChallenge.Send((byte)i, (byte)Main.LocalPlayer.whoAmI, UserID);
                     return;
                 }

@@ -2,11 +2,24 @@
 {
     public static class ChallengeID
     {
-        internal static List<Challenge> challenges = new();
+        internal static Dictionary<int, Challenge> challenges = new();
+        internal static Dictionary<int, int> equip = new();
+        internal static Dictionary<int, int> killByNPC = new();
+        internal static Dictionary<int, int> create = new();
+        internal static Dictionary<int, int> killNPC = new();
+        internal static Dictionary<int, int> buyItem = new();
+        internal static Dictionary<int, int> pickItem = new();
+        internal static Dictionary<int, int> onTile = new();
+        internal static Dictionary<int, int> heldItem = new();
+        internal static Dictionary<int, int> fishItem = new();
+        internal static Dictionary<int, int> capture = new();
+        internal static Dictionary<int, int> takeItem = new();
+        internal static Dictionary<int, int> deathByOther = new();
+
         internal static int 淹死 = 0;
         internal static int 死于岩浆 = 1;
         internal static int 穿金胸甲 = 2;
-        internal static int 从200格跳下摔死 = 3;
+        internal static int 摔死 = 3;
         internal static int 在微光湖分解物品 = 4;
         internal static int 制作出草剑 = 5;
         internal static int 成功打败骷髅王 = 6;
