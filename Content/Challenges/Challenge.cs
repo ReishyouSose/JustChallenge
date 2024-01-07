@@ -67,6 +67,7 @@ namespace JustChallenge.Content.Challenges
         public static int[] RollChallenge(byte? index = null, int except = -1)
         {
             List<int> canRoll = new();
+            Console.WriteLine("已完成数: " + ScoreSystem.completed.Count);
             for (int i = 0; i < ChallengeID.challenges.Count; i++)
             {
                 if (ignore.Contains(i) || ScoreSystem.completed.Contains(i) || i == except) continue;
@@ -459,6 +460,7 @@ namespace JustChallenge.Content.Challenges
             color = new(197, 94, 16);
             create = ItemID.SpaceGun;
         }
+        public override void SetDepends(HashSet<int> depends) => depends.Add(ChallengeID.击败克苏鲁之脑);
     }
     public class 杀死一只兔兔 : Challenge
     {

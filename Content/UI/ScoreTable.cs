@@ -38,6 +38,14 @@ namespace JustChallenge.Content.UI
                 Wait.Send((byte)Main.LocalPlayer.whoAmI);
                 Wating = !Wating;
             };
+            reset.ReDraw += sb =>
+            {
+                reset.DrawSelf(sb);
+                if (reset.Info.IsMouseHover)
+                {
+                    Main.hoverItemName += "清除分数并重置所有挑战（包括已完成的）";
+                }
+            };
             bg.Register(reset);
 
             panel = new(0, -38, 1, 1);
@@ -79,7 +87,7 @@ namespace JustChallenge.Content.UI
                 if (player.active)
                 {
                     UIText name = new(player.name, drawStyle: 0);
-                    name.SetPos(63, y + 6);
+                    name.SetPos(70, y + 6);
                     panel.Register(name);
 
                     UIImage adminLogo = null;
@@ -123,7 +131,7 @@ namespace JustChallenge.Content.UI
             }
             panel.Info.Height.Pixel = y + 20;
             bg.Info.Height.Pixel = 20 + panel.Info.Height.Pixel;
-            bg.SetPos(-bg.Width / 2, -bg.Height / 2, 0.5f, 0.4f);
+            bg.SetPos(-bg.Width / 2, 0, 0.5f, 0.3f);
             bg.Calculation();
         }
         public void RefreshWaiter(bool success)

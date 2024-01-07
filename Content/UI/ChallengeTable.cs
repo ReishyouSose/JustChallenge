@@ -49,7 +49,7 @@ namespace JustChallenge.Content.UI
                 };
                 refreshs[i] = r;
                 bg.Register(refreshs[i]);
-                y += 28;
+                y += 32;
             }
         }
         public override void Update(GameTime gt)
@@ -113,7 +113,7 @@ namespace JustChallenge.Content.UI
             }
             if (index < 3)
             {
-                Main.NewText((index + 1) + "号挑战已被刷新");
+                Main.NewText((index + 1) + "号挑战已刷新");
             }
             needReCal = true;
         }

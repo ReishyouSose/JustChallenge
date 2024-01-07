@@ -56,7 +56,12 @@ namespace JustChallenge.Content
                 {
                     tempScore.Remove(needRemove.Value);
                     tempWaiter.Remove(needRemove.Value);
+                    foreach (byte whoAmI in tempWaiter.Keys)
+                    {
+                        tempWaiter[whoAmI] = false;
+                    }
                     activcPlayer = tempScore.Count;
+                    if (activcPlayer == 0) return;
                     if (activcPlayer == 1)
                     {
                         admin = tempScore.Keys.First();
@@ -76,55 +81,61 @@ namespace JustChallenge.Content
         }
         public override void SaveWorldData(TagCompound tag)
         {
-            if (scoresData.Any())
+            if (Main.dedServ)
             {
-                TagCompound u = new();
-                foreach ((uint uid, var data) in scoresData)
+                if (scoresData.Any())
                 {
-                    TagCompound d = new();
-                    foreach (var (name, score) in data)
+                    TagCompound u = new();
+                    foreach ((uint uid, var data) in scoresData)
                     {
-                        d[name] = score;
+                        TagCompound d = new();
+                        foreach (var (name, score) in data)
+                        {
+                            d[name] = score;
+                        }
+                        u[uid.ToString()] = d;
                     }
-                    u[uid.ToString()] = d;
+                    tag["scores"] = u;
                 }
-                tag["scores"] = u;
+                tag["challenges"] = challenges;
+                TagCompound c = new();
+                for (int i = 0; i < 3; i++)
+                {
+                    c[i.ToString()] = complete[i];
+                }
+                tag["complete"] = c;
+                tag["completed"] = completed.ToArray();
             }
-            tag["challenges"] = challenges;
-            TagCompound c = new();
-            for (int i = 0; i < 3; i++)
-            {
-                c[i.ToString()] = complete[i];
-            }
-            tag["complete"] = c;
-            tag["completed"] = completed.ToArray();
         }
         public override void LoadWorldData(TagCompound tag)
         {
-            if (tag.TryGet("scores", out TagCompound scores))
+            if (Main.dedServ)
             {
-                scoresData = new();
-                foreach ((string uid, _) in scores)
+                if (tag.TryGet("scores", out TagCompound scores))
                 {
-                    if (scores.TryGet(uid, out TagCompound u))
+                    scoresData = new();
+                    foreach ((string uid, _) in scores)
                     {
-                        uint id = uint.Parse(uid);
-                        scoresData[id] = new();
-                        foreach ((string name, _) in u)
+                        if (scores.TryGet(uid, out TagCompound u))
                         {
-                            scoresData[id][name] = u.GetInt(name);
+                            uint id = uint.Parse(uid);
+                            scoresData[id] = new();
+                            foreach ((string name, _) in u)
+                            {
+                                scoresData[id][name] = u.GetInt(name);
+                            }
                         }
                     }
                 }
-            }
-            challenges = tag.GetIntArray(nameof(challenges));
-            completed = tag.GetIntArray(nameof(completed)).ToHashSet();
-            if (tag.TryGet("complete", out TagCompound c))
-            {
-                complete = new bool[3];
-                for (int i = 0; i < 3; i++)
+                challenges = tag.GetIntArray(nameof(challenges));
+                completed = tag.GetIntArray(nameof(completed)).ToHashSet();
+                if (tag.TryGet("complete", out TagCompound c))
                 {
-                    complete[i] = c.GetBool(i.ToString());
+                    complete = new bool[3];
+                    for (int i = 0; i < 3; i++)
+                    {
+                        complete[i] = c.GetBool(i.ToString());
+                    }
                 }
             }
         }
