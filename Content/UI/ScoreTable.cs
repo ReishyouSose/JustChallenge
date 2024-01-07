@@ -6,9 +6,11 @@ namespace JustChallenge.Content.UI
     {
         internal static string Namekey = "JustChallenge.Content.UI.ScoreTable";
         internal static ScoreTable SUI => UIS?[Namekey] as ScoreTable;
+        internal static int waiter;
         private UIPanel bg;
         private UIBottom panel;
         private UIText reset;
+        private Texture2D[] adminTex;
         public bool Wating { get; private set; }
         private static float scoreOffset;
         public override void OnInitialization()
@@ -29,9 +31,11 @@ namespace JustChallenge.Content.UI
             reset = new("发起重置请求", drawStyle: 0);
             reset.SetSize(reset.TextSize);
             reset.SetPos(70, 10);
+            reset.Events.OnMouseOver += evt => reset.color = Color.Gold;
+            reset.Events.OnMouseOut += evt => reset.color = Color.White;
             reset.Events.OnLeftDown += evt =>
             {
-                Wait.Send((byte)Main.LocalPlayer.whoAmI, Wating, true);
+                Wait.Send((byte)Main.LocalPlayer.whoAmI);
                 Wating = !Wating;
             };
             bg.Register(reset);
@@ -56,9 +60,18 @@ namespace JustChallenge.Content.UI
         {
             Info.IsVisible = !Info.IsVisible;
         }
-        public void RefreshScore()
+        public void RefreshScore(byte admin)
         {
+            ScoreSystem.admin = admin;
             panel.RemoveAll();
+            if (adminTex == null)
+            {
+                adminTex = new Texture2D[4];
+                adminTex[0] = T2D("JustChallenge/UISupport/Asset/Admin");
+                adminTex[1] = T2D("JustChallenge/UISupport/Asset/AdminBg");
+                adminTex[2] = T2D("JustChallenge/UISupport/Asset/ChangeAdmin");
+                adminTex[3] = T2D("JustChallenge/UISupport/Asset/ChangeAdmin_Light");
+            }
             int y = 10;
             foreach ((byte whoAmI, int point) in ScoreSystem.tempScore)
             {
@@ -66,14 +79,46 @@ namespace JustChallenge.Content.UI
                 if (player.active)
                 {
                     UIText name = new(player.name, drawStyle: 0);
-                    name.SetPos(13, y);
+                    name.SetPos(63, y + 6);
                     panel.Register(name);
 
+                    UIImage adminLogo = null;
+                    if (whoAmI == admin)
+                    {
+                        adminLogo = new(adminTex[1]);
+                        adminLogo.ReDraw += sb =>
+                        {
+                            adminLogo.DrawSelf(sb);
+                            sb.Draw(adminTex[0], adminLogo.Center(), null, Color.White, 0, new(16), 1f, 0, 0);
+                        };
+                    }
+                    else if (Main.myPlayer == admin)
+                    {
+                        adminLogo = new(adminTex[2]);
+                        adminLogo.Events.OnMouseOver += evt => adminLogo.Tex = adminTex[3];
+                        adminLogo.Events.OnMouseOut += evt => adminLogo.Tex = adminTex[2];
+                        adminLogo.ReDraw += sb =>
+                        {
+                            adminLogo.DrawSelf(sb);
+                            if (adminLogo.Info.IsMouseHover)
+                            {
+                                Main.hoverItemName += "双击转移管理员权限";
+                            }
+                        };
+                        byte index = whoAmI;
+                        adminLogo.Events.OnLeftDoubleClick += evt =>
+                        {
+                            ChangeAdmin.Send(index, true);
+                        };
+                    }
+                    adminLogo?.SetPos(13, y);
+                    panel.Register(adminLogo);
+
                     UIText score = new(point.ToString(), drawStyle: 0);
-                    score.SetPos(-scoreOffset, y, 1);
+                    score.SetPos(-scoreOffset, y + 6, 1);
                     panel.Register(score);
 
-                    y += 28;
+                    y += 50;
                 }
             }
             panel.Info.Height.Pixel = y + 20;
@@ -85,7 +130,7 @@ namespace JustChallenge.Content.UI
         {
             if (success) Wating = false;
             reset.ChangeText((Wating ? "撤销重置请求" : "发起重置请求")
-                + "(" + ScoreSystem.waitResetPlayer + "/" + ScoreSystem.activcPlayer + ")");
+                + "(" + waiter + "/" + ScoreSystem.activcPlayer + ")");
         }
     }
 }

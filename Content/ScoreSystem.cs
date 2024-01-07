@@ -1,6 +1,4 @@
-﻿using JustChallenge.Content.Challenges;
-using JustChallenge.Content.Packages;
-using JustChallenge.Content.UI;
+﻿using JustChallenge.Content.Packages;
 using JustChallenge.UISupport;
 using Microsoft.Xna.Framework.Input;
 using Terraria.ModLoader.IO;
@@ -11,17 +9,14 @@ namespace JustChallenge.Content
     {
         internal static UISystem uis;
         internal static ModKeybind CheckScore;
-        internal static bool first = true;
-        internal static int[] scores = new int[255];
-        internal static Dictionary<uint, Dictionary<string, int>> scoresData = new();
+        internal static Dictionary<uint, Dictionary<string, int>> scoresData;
         internal static Dictionary<byte, int> tempScore;
-        internal static int activcPlayer;
-        internal static int waitRefreshPlayer;
-        internal static int waitResetPlayer;
-        internal static int NeedPlayer => activcPlayer > 1 ? Math.Max(2, (int)Math.Round(activcPlayer / 2f)) : 1;
-        internal static int[] challenges;
-        internal static bool[] complete;
+        internal static Dictionary<byte, bool> tempWaiter;
         internal static HashSet<int> completed;
+        internal static bool[] complete;
+        internal static int[] challenges;
+        internal static int activcPlayer;
+        internal static byte admin;
         public override void Load()
         {
             if (!Main.dedServ)
@@ -36,12 +31,40 @@ namespace JustChallenge.Content
             }
             else
             {
-                challenges = new int[3] { -1, -1, -1 };
+                scoresData = new();
                 complete = new bool[3];
                 completed = new();
+                tempWaiter = new();
             }
             tempScore = new();
             CheckScore = KeybindLoader.RegisterKeybind(Mod, "L", Keys.L);
+        }
+        public override void PostUpdatePlayers()
+        {
+            if (Main.dedServ)
+            {
+                byte? needRemove = null;
+                foreach (byte whoAmI in tempScore.Keys)
+                {
+                    if (!Main.player[whoAmI].active)
+                    {
+                        needRemove = whoAmI;
+                        break;
+                    }
+                }
+                if (needRemove >= 0)
+                {
+                    tempScore.Remove(needRemove.Value);
+                    tempWaiter.Remove(needRemove.Value);
+                    activcPlayer = tempScore.Count;
+                    if (activcPlayer == 1)
+                    {
+                        admin = tempScore.Keys.First();
+                        ChangeAdmin.Send(admin, true);
+                    }
+                    SyncScore.Send();
+                }
+            }
         }
         public override void UpdateUI(GameTime gameTime)
         {
@@ -50,10 +73,6 @@ namespace JustChallenge.Content
         public override void PostDrawInterface(SpriteBatch spriteBatch)
         {
             uis?.Draw(spriteBatch);
-        }
-        public override void PreSaveAndQuit()
-        {
-            SyncQuit.Send((byte)Main.myPlayer, ChallengeTable.CUI.Wating, ScoreTable.SUI.Wating);
         }
         public override void SaveWorldData(TagCompound tag)
         {
@@ -100,12 +119,7 @@ namespace JustChallenge.Content
             }
             challenges = tag.GetIntArray(nameof(challenges));
             completed = tag.GetIntArray(nameof(completed)).ToHashSet();
-            if (!challenges.Any())
-            {
-                challenges = Challenge.RollChallenge();
-                complete = new bool[3];
-            }
-            else if (tag.TryGet("complete", out TagCompound c))
+            if (tag.TryGet("complete", out TagCompound c))
             {
                 complete = new bool[3];
                 for (int i = 0; i < 3; i++)

@@ -8,6 +8,10 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="UISupport\Asset\Admin.png" />
+    <None Remove="UISupport\Asset\AdminBg.png" />
+    <None Remove="UISupport\Asset\ChangeAdmin.png" />
+    <None Remove="UISupport\Asset\ChangeAdmin_Light.png" />
     <None Remove="UISupport\Asset\ClothesStyleBack.png" />
   </ItemGroup>
   <ItemGroup>

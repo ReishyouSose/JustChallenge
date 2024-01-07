@@ -1,5 +1,4 @@
-﻿using Terraria.GameContent.UI.States;
-using Terraria.Localization;
+﻿using Terraria.Localization;
 
 namespace JustChallenge.Content.Challenges
 {
@@ -7,6 +6,8 @@ namespace JustChallenge.Content.Challenges
     {
         internal static HashSet<int> ignore = new() { 4, 18 };
         public bool IsComplete;
+        private readonly HashSet<int> depends;
+        public float Width => FontAssets.MouseText.Value.MeasureString(Description.Value).X;
         public readonly int type = -1;
         public readonly Color color = Color.White;
         public readonly int equip = -1;
@@ -25,7 +26,11 @@ namespace JustChallenge.Content.Challenges
         {
             SetStaticDefault(ref type, ref color, ref equip, ref killByNPC, ref create, ref killNPC, ref buyItem,
                 ref pickItem, ref onTile, ref heldItem, ref fishItem, ref capture, ref takeItem, ref deathByOther);
+            depends = new();
+            SetDepends(depends);
+            ChallengeID.challenges.Add(type, this);
         }
+        public virtual void SetDepends(HashSet<int> depends) { }
         public Challenge Copy(bool isComplete)
         {
             IsComplete = isComplete;
@@ -36,16 +41,15 @@ namespace JustChallenge.Content.Challenges
             ref int create, ref int killNPC, ref int buyItem, ref int pickItem, ref int onTile, ref int heldItem,
             ref int fishItem, ref int capture, ref int takeItem, ref int deathByOther);
         public virtual LocalizedText Description => Language.GetText($"Mods.JustChallenge.Challenges.{GetType().Name}");
-        public virtual void Draw(SpriteBatch spb, float x, float y)
+        public virtual void Draw(SpriteBatch spb, Vector2 pos)
         {
             ChatManager.DrawColorCodedStringWithShadow(spb, FontAssets.MouseText.Value, Description.Value,
-                new Vector2(x, y), color.SetAlpha(200), 0, Vector2.Zero, Vector2.One, spread: 1);
+               pos, color.SetAlpha(200), 0, Vector2.Zero, Vector2.One, spread: 1);
         }
         public virtual void ExtraCondition() { }
         protected override void Register() { }
         public override void SetupContent()
         {
-            ChallengeID.challenges.Add(type, this);
             if (equip > ItemID.None) ChallengeID.equip.Add(equip, type);
             if (killByNPC > NPCID.None) ChallengeID.killByNPC.Add(killByNPC, type);
             if (create > ItemID.None) ChallengeID.create.Add(create, type);
@@ -60,27 +64,53 @@ namespace JustChallenge.Content.Challenges
             if (deathByOther > -1) ChallengeID.deathByOther.Add(deathByOther, type);
             ExtraCondition();
         }
-        public static int[] RollChallenge()
+        public static int[] RollChallenge(byte? index = null, int except = -1)
         {
             List<int> canRoll = new();
             for (int i = 0; i < ChallengeID.challenges.Count; i++)
             {
-                if (ignore.Contains(i) || ScoreSystem.completed.Contains(i)) continue;
-                canRoll.Add(i);
+                if (ignore.Contains(i) || ScoreSystem.completed.Contains(i) || i == except) continue;
+                bool unlock = true;
+                foreach (int depend in ChallengeID.challenges[i].depends)
+                {
+                    if (!ScoreSystem.completed.Contains(depend))
+                    {
+                        unlock = false;
+                        break;
+                    }
+                }
+                if (unlock) canRoll.Add(i);
             }
+            if (!canRoll.Any()) return null;
             canRoll.Shuffle();
+            int count = canRoll.Count;
+            if (index.HasValue && count > 1)
+            {
+                int[] result = new int[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    if (i == index.Value)
+                    {
+                        int r = canRoll[i];
+                        while (ScoreSystem.challenges.Contains(r))
+                        {
+                            r = canRoll[Main.rand.Next(count)];
+                        }
+                        result[i] = r;
+                        ScoreSystem.complete[i] = false;
+                    }
+                    else result[i] = ScoreSystem.challenges[i];
+                }
+                return result;
+            }
+            ScoreSystem.complete = new bool[3];
+            while (count < 3) canRoll.Add(-1);
+            Console.WriteLine(("随机挑战", canRoll[0], canRoll[1], canRoll[2]));
             return canRoll.GetRange(0, 3).ToArray();
         }
         public static void CheckFirst()
         {
-            foreach (int id in ScoreSystem.challenges)
-            {
-                if (id > -1)
-                {
-                    return;
-                }
-            }
-            ScoreSystem.challenges = RollChallenge();
+            ScoreSystem.challenges ??= RollChallenge();
         }
     }
     public class 淹死 : Challenge
@@ -154,6 +184,7 @@ namespace JustChallenge.Content.Challenges
             color = new(0, 112, 192);
             pickItem = ItemID.WaterCandle;
         }
+        public override void SetDepends(HashSet<int> depends) => depends.Add(ChallengeID.成功打败骷髅王);
     }
     public class 钓出天空匣 : Challenge
     {
@@ -466,5 +497,6 @@ namespace JustChallenge.Content.Challenges
             create = ItemID.CrimsonScalemail;
         }
         public override void ExtraCondition() => ChallengeID.create.Add(ItemID.ShadowScalemail, type);
+        public override void SetDepends(HashSet<int> depends) => depends.Add(ChallengeID.击败克苏鲁之脑);
     }
 }
