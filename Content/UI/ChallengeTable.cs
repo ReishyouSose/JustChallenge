@@ -8,8 +8,8 @@ namespace JustChallenge.Content.UI
         internal static ChallengeTable CUI => UIS?[Namekey] as ChallengeTable;
         internal static string Namekey = "JustChallenge.Content.UI.ChallengeTable";
         public Challenge[] challenges;
-        public UIPanel bg;
-        public UIImage[] refreshs;
+        private UIPanel bg;
+        private UIImage[] refreshs;
         private bool needReCal;
         private bool allCompleted;
         private static readonly string allText = GTV("AllCompleted");
@@ -18,8 +18,9 @@ namespace JustChallenge.Content.UI
         {
             base.OnInitialization();
 
-            bg = new(100, 20 + 28 * 3, color: Color.White);
+            bg = new(100, 30 + 28 * 3, color: Color.White);
             bg.SetPos(20, -bg.Height / 2f, 0, 0.5f);
+            bg.CanDrag = true;
             Register(bg);
 
             challenges = new Challenge[3];
@@ -117,6 +118,7 @@ namespace JustChallenge.Content.UI
             }
             needReCal = true;
         }
+        public new void ResetPos() => bg.ResetPos();
         public static void ChangeState(byte index)
         {
             CUI.challenges[index].IsComplete = true;

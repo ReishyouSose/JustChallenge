@@ -129,7 +129,6 @@ namespace JustChallenge
             c.A = alpha;
             return c;
         }
-        public static Texture2D T2D(string path) => ModContent.Request<Texture2D>(path, ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
 
         public static void DrawRec(SpriteBatch sb, Rectangle rec, float width, Color color, bool worldPos = true)
         {
@@ -181,8 +180,10 @@ namespace JustChallenge
             return new Vector4(x, y, w, h);
         }
         public static string LocalKey = "Mods.JustChallenge.";
+        public static Texture2D T2D(string path) => ModContent.Request<Texture2D>(path, ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+
         public static string GTV(string key) => Language.GetTextValue(LocalKey + key);
-        public static Dictionary<string, ContainerElement> UIS => ScoreSystem.uis.Elements;
+        public static Dictionary<string, ContainerElement> UIS => ScoreSystem.uis?.Elements;
         public static uint UserID => SteamUser.GetSteamID().GetAccountID().m_AccountID;
         public static void Shuffle<T>(this IList<T> list, int? stop = null)
         {

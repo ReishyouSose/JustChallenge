@@ -17,6 +17,7 @@ namespace JustChallenge.Content
         internal static int[] challenges;
         internal static int activcPlayer;
         internal static byte admin;
+        private Vector2 resolution;
         public override void Load()
         {
             if (!Main.dedServ)
@@ -74,6 +75,16 @@ namespace JustChallenge.Content
         public override void UpdateUI(GameTime gameTime)
         {
             uis?.Update(gameTime);
+            if (!Main.dedServ)
+            {
+                Vector2 res = new(Main.screenWidth, Main.screenHeight);
+                if (resolution != res)
+                {
+                    uis.Calculation();
+                    uis.OnResolutionChange();
+                    resolution = res;
+                }
+            }
         }
         public override void PostDrawInterface(SpriteBatch spriteBatch)
         {
@@ -127,7 +138,8 @@ namespace JustChallenge.Content
                         }
                     }
                 }
-                challenges = tag.GetIntArray(nameof(challenges));
+                int[] cs = tag.GetIntArray(nameof(challenges));
+                if (cs.Length == 3) challenges = cs;
                 completed = tag.GetIntArray(nameof(completed)).ToHashSet();
                 if (tag.TryGet("complete", out TagCompound c))
                 {

@@ -18,6 +18,14 @@ namespace JustChallenge.Content
         public override void OnEnterWorld()
         {
             FirstRequest.Send(UserID, Player.name, Player.whoAmI);
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                ChallengeTable.CUI.Info.IsVisible = false;
+            }
+            else if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                ChallengeTable.CUI.Info.IsVisible = true;
+            }
         }
         public override void UpdateEquips()
         {
@@ -74,7 +82,15 @@ namespace JustChallenge.Content
         {
             if (Main.netMode != NetmodeID.MultiplayerClient) return;
             ScoreTable SUI = UIS?[ScoreTable.Namekey] as ScoreTable;
-            SUI.Info.IsVisible = ScoreSystem.CheckScore.Current;
+            ref bool visible = ref SUI.Info.IsVisible;
+            if (ScoreTable.UISwitchType == 0)
+            {
+                visible = ScoreSystem.CheckScore.Current;
+            }
+            else if (ScoreSystem.CheckScore.JustPressed)
+            {
+                visible = !visible;
+            }
         }
         public override void PostBuyItem(NPC vendor, Item[] shopInventory, Item item)
         {

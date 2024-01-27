@@ -45,3 +45,14 @@ Challenges: {
 
 Keybinds.L.DisplayName: 查看积分表
 AllCompleted: 所有挑战均已完成
+
+Configs: {
+	ChallengeConfig: {
+		DisplayName: Challenge Config
+
+		UISwitchType: {
+			Label: 积分表显示模式
+			Tooltip: 0：按住  1：切换
+		}
+	}
+}

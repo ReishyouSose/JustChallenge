@@ -7,6 +7,7 @@ namespace JustChallenge.Content.UI
         internal static string Namekey = "JustChallenge.Content.UI.ScoreTable";
         internal static ScoreTable SUI => UIS?[Namekey] as ScoreTable;
         internal static int waiter;
+        internal static int UISwitchType;
         private UIPanel bg;
         private UIBottom panel;
         private UIText reset;
@@ -64,6 +65,7 @@ namespace JustChallenge.Content.UI
             base.Update(gt);
             if (Main.netMode == NetmodeID.SinglePlayer) Info.IsVisible = false;
         }
+        public new void ResetPos() => bg.ResetPos();
         public void SwitchState()
         {
             Info.IsVisible = !Info.IsVisible;
@@ -88,6 +90,7 @@ namespace JustChallenge.Content.UI
                 {
                     UIText name = new(player.name, drawStyle: 0);
                     name.SetPos(70, y + 6);
+                    name.SetSize(name.TextSize);
                     panel.Register(name);
 
                     UIImage adminLogo = null;
@@ -131,7 +134,7 @@ namespace JustChallenge.Content.UI
             }
             panel.Info.Height.Pixel = y + 20;
             bg.Info.Height.Pixel = 20 + panel.Info.Height.Pixel;
-            bg.SetPos(-bg.Width / 2, 0, 0.5f, 0.3f);
+            //bg.SetPos(-bg.Width / 2, 0, 0.5f, 0.4f);
             bg.Calculation();
         }
         public void RefreshWaiter(bool success)
